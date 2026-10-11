@@ -111,6 +111,8 @@ The original transaction-specific screen IDs remain in the notebook. Changing th
 
 ## Current limitations
 
+- **The companion PDF and Excel file must have exactly the same base filename**, for example `declaration_001.xlsx` and `declaration_001.pdf`. The script searches for the Excel base filename followed by `.pdf` in the input folder; a differently named PDF will not be found or archived alongside the Excel file. A missing matching PDF generates a warning but does not block the Excel upload.
+
 - **Success is based on the absence of a Python exception.** The script does not inspect SAP status messages or verify that a document was posted. A `Completed` file therefore requires independent SAP verification.
 - An unreadable workbook currently defaults to non-FZ after logging the read failure.
 - Missing PDFs do not block processing.
