@@ -69,6 +69,24 @@ Place the Excel upload files in one input folder. A companion PDF is optional an
 
 Only the Excel file is supplied to the SAP upload screen. The PDF is archived alongside it; a missing PDF generates a warning without preventing the upload.
 
+## Actual run output
+
+The screenshot below shows console output from an actual run, with filenames and source values redacted.
+
+![Actual SAP upload run showing per-file messages and processing summary](assets/run-output.png)
+
+| Summary metric | Reported value |
+| --- | --- |
+| Excel files found | 6 |
+| Upload success | 6 |
+| Upload failed | 0 |
+| Missing companion PDFs | 6 |
+| Processing time | 161.27 seconds |
+
+In this run, the script reported all six Excel uploads as successful despite missing matching PDFs. These success counts reflect the script's execution result, rather than independent verification of posting in SAP.
+
+**Version note:** This screenshot was captured before the CC2 classification was updated to `Y` for FZ and `N` for non-FZ. Its visible CC2 messages reflect the earlier version; the current notebook uses the Y/N rule documented above.
+
 ## Requirements
 
 - Windows with SAP GUI installed.
