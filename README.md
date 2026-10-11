@@ -22,11 +22,43 @@ The notebook operates on existing Excel upload files. It does not extract data f
 
 | Value in active-sheet cell CC2 | Mode |
 | --- | --- |
-| Starts with F after trimming whitespace and converting to uppercase | FZ |
-| Blank or any other value | non-FZ |
+| `Y` after trimming whitespace and converting to uppercase | FZ |
+| `N` | non-FZ |
+| Blank or any other value | non-FZ fallback in the current implementation |
 | Workbook cannot be read | Logged as a read error; current implementation falls back to non-FZ |
 
 This is a rule for the source file format, rather than a general customs classification rule.
+
+## Python processing flow
+
+Column `CC` contains the Free Zone indicator: `Y` means FZ and `N` means non-FZ. The script reads **CC2 on the active worksheet** once per workbook; it does not inspect every row in column CC.
+
+```mermaid
+flowchart TD
+    A["Connect to SAP and open transaction"] --> B["List Excel files in filename order"]
+    B --> C{"Another file?"}
+    C -->|No| Z["Log totals and elapsed time"]
+    C -->|Yes| D["Read active-sheet CC2"]
+    D --> E{"CC2 = Y?"}
+    E -->|Yes| F["Select FZ mode"]
+    E -->|No: N or fallback| G["Select non-FZ mode"]
+    F --> H{"Mode changed?"}
+    G --> H
+    H -->|Yes| I["Return if needed and open selected screen"]
+    H -->|No| J["Set Excel path and execute twice"]
+    I --> J
+    J --> K["Handle optional non-FZ popup"]
+    K --> L{"Python exception?"}
+    L -->|No| M["Log success and check companion PDF"]
+    M --> N["Archive in selected mode Completed folder"]
+    L -->|Yes| O["Log error and archive in selected mode Error folder"]
+    N --> C
+    O --> C
+```
+
+`wait_for_sap()` waits while SAP is busy and raises an exception after 30 seconds. `switch_mode()` reuses the current screen for consecutive files of the same type. `move_files()` archives the Excel and matching PDF when present.
+
+Workbook read failures are caught inside `check_cc2_column()` and return the non-FZ fallback. The error branch shown above handles exceptions propagated during mode switching, upload, or archiving; an archiving failure can interrupt that branch too. The absence of a Python exception does not confirm successful posting in SAP.
 
 ## Input files
 
@@ -91,7 +123,7 @@ The original transaction-specific screen IDs remain in the notebook. Changing th
 
 | File | Purpose |
 | --- | --- |
-| `sap_import_declaration_upload.ipynb` | Original workflow with credentials and local configuration replaced by environment variables; saved outputs cleared |
+| `sap_import_declaration_upload.ipynb` | Workflow with Y/N classification, environment-based configuration, and cleared outputs |
 | `requirements.txt` | Runtime dependencies |
 | `.gitignore` | Excludes local configuration, declaration files, logs, and notebook checkpoints |
 
